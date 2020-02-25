@@ -45,10 +45,16 @@ function setup() {
   canvas = createCanvas(800, 600);
   textSize(42);
   textAlign(CENTER, CENTER); //https://p5js.org/reference/#/p5/textAlign
+  //setting up colour mode and fill mode
+  colorMode(HSB, 100); //https://p5js.org/reference/#/p5/colorMode have to do it right at the start of setup, otherwise other created colours remember the colour mode they were created in
 
   // create an engine
   engine = Engine.create();
   world = engine.world;
+  //zero gravity in matter.js 
+  //https://stackoverflow.com/questions/29466684/disabling-gravity-in-matter-js
+  //https: //brm.io/matter-js/docs/classes/World.html#property_gravity
+  world.gravity.y = 0;
 
   // get mouse interaction set up....
   var mouse = Mouse.create(canvas.elt);
@@ -82,6 +88,8 @@ function setup() {
   var endXPosition = width - startXPosition;
   var widthForWords = endXPosition - startXPosition;
   var spacePerWord = widthForWords / words.length;
+  var randomXVelocity = random(-5, 5);
+  var randomYVelocity = random(-5, 5);
 
   //now create and add the rectangles to the world
   for (var i = 0; i < words.length; i++) {
@@ -111,6 +119,14 @@ function setup() {
     );
     rectangles.push(theRectangleToRemember);
     World.add(world, newRectangle);
+
+    //set a random velocity of the new rectangle
+    //see http://brm.io/matter-js/docs/classes/Body.html
+    //from http://codepen.io/lilgreenland/pen/jrMvaB?editors=0010#0
+    Body.setVelocity(newRectangle, {
+      x: randomXVelocity,
+      y: randomYVelocity
+    });
   }
 
   // run the engine
@@ -119,50 +135,78 @@ function setup() {
 
 // Using p5 to render
 function draw() {
-  // I could ask for everything in the world
-  // var bodies = Composite.allBodies(engine.world);
+  background(255);
 
-  background(51);
+  strokeWeight(8);
+  stroke(0);
+  //drawing straight lines between rectangles first....
+  for (var i = 0; i < (rectangles.length - 1); i++) {
+    var startX = rectangles[i].matterRectangle.position.x;
+    var startY = rectangles[i].matterRectangle.position.y;
+    var startColour = rectangles[i].colour;
+    var endX = rectangles[i + 1].matterRectangle.position.x;
+    var endY = rectangles[i + 1].matterRectangle.position.y;
+    var endColour = rectangles[i + 1].colour;
+    drawGradientLine(startX, startY, endX, endY, startColour, endColour);
+  }
 
+  noStroke();
+  //drawing the rectangles themselves and their text
   for (var i = 0; i < rectangles.length; i++) {
     // Getting vertices of each object
-    var vertices = rectangles[i].matterRectangle.vertices;
-    fill(255);
+    var theRectangle = rectangles[i].matterRectangle;
+    var angle = theRectangle.angle;
+    var theColour = rectangles[i].colour;
+    var translateTargetX = theRectangle.position.x;
+    var translateTargetY = theRectangle.position.y;
+    var vertices = theRectangle.vertices;
+
+    fill(theColour);
     beginShape();
     for (var j = 0; j < vertices.length; j++) {
       vertex(vertices[j].x, vertices[j].y);
     }
     endShape();
 
-    var theRectangle = rectangles[i].matterRectangle;
-    var pos = theRectangle.position;
-    var angle = theRectangle.angle;
-    var theColour = theRectangle.colour;
-    var translateTargetX = pos.x;
-    var translateTargetY = pos.y;
+    fill(0);
     push();
     translate(translateTargetX, translateTargetY);
+    //ellipse(0, 0, 72, 72);
     rotate(angle);
-    fill(0);
     text(rectangles[i].word, 0, 0);
     pop();
   }
-
-  // // Ground vertices
-  // var vertices = ground.vertices;
-  // beginShape();
-  // fill(127);
-  // for (var i = 0; i < vertices.length; i++) {
-  //   vertex(vertices[i].x, vertices[i].y);
-  // }
-  // endShape();
 }
 
 function DACRectangle(theRectangle, theWord, rectangleWidth, rectangleHeight) {
   // quick class to hold Matter Rectangle and its colour
   this.matterRectangle = theRectangle;
-  this.colour = color(random(100), 50, 100, 50); //random hue, saturation 50%, brightness 100%, alpha 50%;
+  this.colour = color(random(100), 100, 100, 100); //random hue, saturation 50%, brightness 100%, alpha 50%;
   this.word = theWord;
   this.rectangleWidth = rectangleWidth;
   this.rectangleHeight = rectangleHeight;
+}
+
+//found via: https://discourse.processing.org/t/gradients-on-p5-js/7555
+//https://editor.p5js.org/dwjohnston/sketches/JWwYv5fuI
+
+function drawGradientLine(x1, y1, x2, y2, c1, c2) {
+
+  const length = floor(Math.sqrt(
+    (x2 - x1) * (x2 - x1) +
+    (y2 - y1) * (y2 - y1)));
+  stroke(c1);
+
+  //ellipse(x1, y1, 5, 5); //This just shows where the line starts.
+  //You can remove it. 
+  translate(x1, y1);
+  const degree = -1 * atan2(x2 - x1, y2 - y1);
+  rotate(degree);
+
+  Array(length).fill(0).forEach((v, i) => {
+    stroke(lerpColor(color(c1), color(c2), i / length));
+    point(0, i);
+  });
+  rotate(-1 * degree);
+  translate(-1 * x1, -1 * y1);
 }

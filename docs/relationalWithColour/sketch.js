@@ -45,6 +45,9 @@ function setup() {
   canvas = createCanvas(800, 600);
   textSize(42);
   textAlign(CENTER, CENTER); //https://p5js.org/reference/#/p5/textAlign
+  //setting up colour mode and fill mode
+  colorMode(HSB, 100); //https://p5js.org/reference/#/p5/colorMode have to do it right at the start of setup, otherwise other created colours remember the colour mode they were created in
+  noStroke();
 
   // create an engine
   engine = Engine.create();
@@ -122,46 +125,38 @@ function draw() {
   // I could ask for everything in the world
   // var bodies = Composite.allBodies(engine.world);
 
-  background(51);
+  background(255);
 
   for (var i = 0; i < rectangles.length; i++) {
     // Getting vertices of each object
-    var vertices = rectangles[i].matterRectangle.vertices;
-    fill(255);
+    var theRectangle = rectangles[i].matterRectangle;
+    var angle = theRectangle.angle;
+    var theColour = rectangles[i].colour;
+    var translateTargetX = theRectangle.position.x;
+    var translateTargetY = theRectangle.position.y;
+    var vertices = theRectangle.vertices;
+
+    fill(theColour);
     beginShape();
     for (var j = 0; j < vertices.length; j++) {
       vertex(vertices[j].x, vertices[j].y);
     }
     endShape();
 
-    var theRectangle = rectangles[i].matterRectangle;
-    var pos = theRectangle.position;
-    var angle = theRectangle.angle;
-    var theColour = theRectangle.colour;
-    var translateTargetX = pos.x;
-    var translateTargetY = pos.y;
+    fill(0);
     push();
     translate(translateTargetX, translateTargetY);
+    //ellipse(0, 0, 72, 72);
     rotate(angle);
-    fill(0);
     text(rectangles[i].word, 0, 0);
     pop();
   }
-
-  // // Ground vertices
-  // var vertices = ground.vertices;
-  // beginShape();
-  // fill(127);
-  // for (var i = 0; i < vertices.length; i++) {
-  //   vertex(vertices[i].x, vertices[i].y);
-  // }
-  // endShape();
 }
 
 function DACRectangle(theRectangle, theWord, rectangleWidth, rectangleHeight) {
   // quick class to hold Matter Rectangle and its colour
   this.matterRectangle = theRectangle;
-  this.colour = color(random(100), 50, 100, 50); //random hue, saturation 50%, brightness 100%, alpha 50%;
+  this.colour = color(random(100), 100, 100, 50); //random hue, saturation 50%, brightness 100%, alpha 50%;
   this.word = theWord;
   this.rectangleWidth = rectangleWidth;
   this.rectangleHeight = rectangleHeight;

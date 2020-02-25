@@ -45,10 +45,16 @@ function setup() {
   canvas = createCanvas(800, 600);
   textSize(42);
   textAlign(CENTER, CENTER); //https://p5js.org/reference/#/p5/textAlign
+  //setting up colour mode and fill mode
+  colorMode(HSB, 100); //https://p5js.org/reference/#/p5/colorMode have to do it right at the start of setup, otherwise other created colours remember the colour mode they were created in
 
   // create an engine
   engine = Engine.create();
   world = engine.world;
+  //zero gravity in matter.js 
+  //https://stackoverflow.com/questions/29466684/disabling-gravity-in-matter-js
+  //https: //brm.io/matter-js/docs/classes/World.html#property_gravity
+  world.gravity.y = 0;
 
   // get mouse interaction set up....
   var mouse = Mouse.create(canvas.elt);
@@ -81,13 +87,18 @@ function setup() {
   var startXPosition = 200;
   var endXPosition = width - startXPosition;
   var widthForWords = endXPosition - startXPosition;
-  var spacePerWord = widthForWords / words.length;
+  var horizontalSpacePerWord = widthForWords / words.length;
+  var verticalSpacePerWord = height / (words.length + 1);
+  var randomXVelocity = random(-5, 5);
+  var randomYVelocity = random(-5, 5);
 
   //now create and add the rectangles to the world
   for (var i = 0; i < words.length; i++) {
     //https://p5js.org/reference/#/p5/textWidth
     var widthOfText = textWidth(words[i]) + pixelPadding;
-    var textXPosition = spacePerWord * i;
+    var textXPosition = horizontalSpacePerWord * i;
+    //var textYPosition = height / 2;
+    var textYPosition = verticalSpacePerWord * (i + 1);
 
     if ((textXPosition + (widthOfText / 2)) > width) {
       textXPosition -= (widthOfText / 2);
@@ -99,7 +110,7 @@ function setup() {
 
     var newRectangle = Bodies.rectangle(
       textXPosition,
-      height / 2,
+      textYPosition,
       widthOfText,
       heightOfText
     );
@@ -111,6 +122,14 @@ function setup() {
     );
     rectangles.push(theRectangleToRemember);
     World.add(world, newRectangle);
+
+    //set a random velocity of the new rectangle
+    //see http://brm.io/matter-js/docs/classes/Body.html
+    //from http://codepen.io/lilgreenland/pen/jrMvaB?editors=0010#0
+    Body.setVelocity(newRectangle, {
+      x: randomXVelocity,
+      y: randomYVelocity
+    });
   }
 
   // run the engine
@@ -119,49 +138,55 @@ function setup() {
 
 // Using p5 to render
 function draw() {
-  // I could ask for everything in the world
-  // var bodies = Composite.allBodies(engine.world);
+  background(255);
 
-  background(51);
+  strokeWeight(8);
+  stroke(0, 0, 0, 50); //black in hsl
+  noFill();
+  beginShape();
+  //drawing Catmull-Rom splines between rectangles first....
+  //https://p5js.org/reference/#/p5/curveVertex
+  curveVertex(rectangles[0].matterRectangle.position.x, rectangles[0].matterRectangle.position.y); //have to add first point twice to draw properly
+  for (var i = 0; i < rectangles.length; i++) {
+    var rectangleCentreX = rectangles[i].matterRectangle.position.x;
+    var rectangleCentreY = rectangles[i].matterRectangle.position.y;
+    curveVertex(rectangleCentreX, rectangleCentreY);
+  }
+  curveVertex(rectangles[rectangles.length - 1].matterRectangle.position.x, rectangles[rectangles.length - 1].matterRectangle.position.y); //have to add last point twice to draw properly
+  endShape();
 
+  noStroke();
+  //drawing the rectangles themselves and their text
   for (var i = 0; i < rectangles.length; i++) {
     // Getting vertices of each object
-    var vertices = rectangles[i].matterRectangle.vertices;
-    fill(255);
+    var theRectangle = rectangles[i].matterRectangle;
+    var angle = theRectangle.angle;
+    var theColour = rectangles[i].colour;
+    var translateTargetX = theRectangle.position.x;
+    var translateTargetY = theRectangle.position.y;
+    var vertices = theRectangle.vertices;
+
+    fill(theColour);
     beginShape();
     for (var j = 0; j < vertices.length; j++) {
       vertex(vertices[j].x, vertices[j].y);
     }
     endShape();
 
-    var theRectangle = rectangles[i].matterRectangle;
-    var pos = theRectangle.position;
-    var angle = theRectangle.angle;
-    var theColour = theRectangle.colour;
-    var translateTargetX = pos.x;
-    var translateTargetY = pos.y;
+    fill(0);
     push();
     translate(translateTargetX, translateTargetY);
+    //ellipse(0, 0, 72, 72);
     rotate(angle);
-    fill(0);
     text(rectangles[i].word, 0, 0);
     pop();
   }
-
-  // // Ground vertices
-  // var vertices = ground.vertices;
-  // beginShape();
-  // fill(127);
-  // for (var i = 0; i < vertices.length; i++) {
-  //   vertex(vertices[i].x, vertices[i].y);
-  // }
-  // endShape();
 }
 
 function DACRectangle(theRectangle, theWord, rectangleWidth, rectangleHeight) {
   // quick class to hold Matter Rectangle and its colour
   this.matterRectangle = theRectangle;
-  this.colour = color(random(100), 50, 100, 50); //random hue, saturation 50%, brightness 100%, alpha 50%;
+  this.colour = color(random(100), 100, 100, 100); //random hue, saturation 50%, brightness 100%, alpha 50%;
   this.word = theWord;
   this.rectangleWidth = rectangleWidth;
   this.rectangleHeight = rectangleHeight;
