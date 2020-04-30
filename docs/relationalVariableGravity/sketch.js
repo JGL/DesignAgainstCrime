@@ -21,7 +21,7 @@ var bodies; //matter physics bodies
 
 var canvas; //pixel canvas
 
-var ground; //ground object for the physics simulation, so that the rectangles can't go off the canvas
+var ground; //ground object for the physics simluation, so that the rectangles can't go off the canvas
 var leftWall; //left wall as above
 var rightWall; //right wall as above
 var ceiling; //ceilling as above
@@ -42,8 +42,8 @@ var rectangles = []; //array holding the rectangles in the simulation
 
 // GUI controls: https://github.com/bitcraftlab/p5.gui
 
-var visible; //is the GUI visible or not?
-var gui; //the gui object itself
+// var visible; //is the GUI visible or not?
+// var gui; //the gui object itself
 
 var colourChoice; // GUI controller for selecting the colour variant
 var backgroundColours = []; //array to contain different background colours, ordered by colourChoice index
@@ -57,6 +57,8 @@ var control1Y;
 var control2X;
 var control2Y;
 
+var currentIndex; //0 to start with and then 1 after the fade has happened
+
 function setup() {
   canvas = createCanvas(800, 600); //800 pixel wide 600 pixel high canvas
   textSize(42); //42 is the answer to everything
@@ -65,10 +67,6 @@ function setup() {
   // create an engine
   engine = Engine.create();
   world = engine.world;
-  //zero gravity in matter.js 
-  //https://stackoverflow.com/questions/29466684/disabling-gravity-in-matter-js
-  //https: //brm.io/matter-js/docs/classes/World.html#property_gravity
-  world.gravity.y = 0;
 
   // get mouse interaction set up....
   var mouse = Mouse.create(canvas.elt);
@@ -158,83 +156,81 @@ function setup() {
 
   visible = true;
 
-  colourChoice = ['Variant 9', 'Variant 10', 'Variant 11', 'Variant 12'];
-
-  // Create Layout GUI
-  gui = createGui("Press g to hide/show me");
-  gui.addGlobals('colourChoice');
-
   backgroundColours = [
-    color(238, 221, 123),
-    color(155, 38, 79),
-    color(24, 24, 24),
-    color(62, 81, 89)
+    color(233, 52, 78),
+    color(238, 221, 123)
   ];
 
   lineColours = [
     color(255, 255, 255, 255),
-    color(76, 59, 70, 255),
-    color(255, 255, 255, 192),
-    color(255, 255, 255, 192)
+    color(255, 255, 255, 255)
   ];
 
   // var words = [
-  // 1  "Design",
-  // 2  "Against",
-  // 3  "Crime",
-  // 4  "Research",
-  // 5  "Centre",
-  // 6  "Socially",
-  // 7  "Responsive",
-  // 8  "Design",
-  // 9  "and",
-  // 10  "Innovation"
+  //   "Design",
+  //   "Against",
+  //   "Crime",
+  //   "Research",
+  //   "Centre",
+  //   "Socially",
+  //   "Responsive",
+  //   "Design",
+  //   "and",
+  //   "Innovation"
   // ]; //array containing the words to be displayed by the simulation
 
   wordBackgroundColours = [
-    [color(97, 95, 90), color(235, 60, 82), color(235, 186, 67), color(238, 205, 218)],
-    [color(73, 164, 183), color(187, 181, 74), color(221, 80, 72), color(213, 189, 164)],
-    [color(73, 164, 183), color(187, 181, 74), color(221, 80, 72), color(238, 205, 218)],
-    [color(134, 190, 152), color(137, 193, 161), color(82, 110, 63), color(230, 168, 95)],
-    [color(134, 190, 152), color(137, 193, 161), color(82, 110, 63), color(95, 143, 166)],
-    [color(235, 59, 86), color(44, 75, 118), color(116, 175, 205), color(95, 143, 166)],
-    [color(235, 59, 86), color(44, 75, 118), color(116, 175, 205), color(95, 143, 166)],
-    [color(235, 59, 86), color(235, 60, 82), color(82, 110, 63), color(230, 168, 95)],
-    [color(134, 190, 152), color(187, 181, 74), color(235, 186, 67), color(119, 132, 104)],
-    [color(235, 59, 86), color(44, 75, 118), color(235, 186, 67), color(238, 205, 218)],
+    [color(255, 255, 255), color(97, 95, 90)],
+    [color(255, 255, 255), color(73, 164, 183)],
+    [color(255, 255, 255), color(73, 164, 183)],
+    [color(255, 255, 255), color(134, 190, 152)],
+    [color(255, 255, 255), color(134, 190, 152)],
+    [color(255, 255, 255), color(235, 59, 86)],
+    [color(255, 255, 255), color(235, 59, 86)],
+    [color(255, 255, 255), color(235, 59, 86)],
+    [color(255, 255, 255), color(134, 190, 152)],
+    [color(255, 255, 255), color(235, 59, 86)],
   ];
 
   wordColours = [
-    [color(255, 255, 255), color(255, 255, 255), color(255, 255, 255), color(0, 0, 0)],
-    [color(68, 65, 71), color(255, 255, 255), color(255, 255, 255), color(0, 0, 0)],
-    [color(68, 65, 71), color(255, 255, 255), color(255, 255, 255), color(0, 0, 0)],
-    [color(255, 255, 255), color(255, 255, 255), color(255, 255, 255), color(0, 0, 0)],
-    [color(255, 255, 255), color(255, 255, 255), color(255, 255, 255), color(255, 255, 255)],
-    [color(255, 255, 255), color(255, 255, 255), color(255, 255, 255), color(0, 0, 0)],
-    [color(255, 255, 255), color(255, 255, 255), color(255, 255, 255), color(255, 255, 255)],
-    [color(255, 255, 255), color(255, 255, 255), color(255, 255, 255), color(0, 0, 0)],
-    [color(255, 255, 255), color(255, 255, 255), color(255, 255, 255), color(255, 255, 255)],
-    [color(255, 255, 255), color(255, 255, 255), color(255, 255, 255), color(0, 0, 0)],
+    [color(0, 0, 0), color(255, 255, 255)],
+    [color(0, 0, 0), color(68, 65, 71)],
+    [color(0, 0, 0), color(68, 65, 71)],
+    [color(0, 0, 0), color(255, 255, 255)],
+    [color(0, 0, 0), color(255, 255, 255)],
+    [color(0, 0, 0), color(255, 255, 255)],
+    [color(0, 0, 0), color(255, 255, 255)],
+    [color(0, 0, 0), color(255, 255, 255)],
+    [color(0, 0, 0), color(255, 255, 255)],
+    [color(0, 0, 0), color(255, 255, 255)],
   ];
+
+  //https://www.youtube.com/watch?v=nGfTjA8qNDA - "9.4: JavaScript setTimeout() Function - p5.js Tutorial "
+  //https://github.com/CodingTrain/website/blob/be0b7898cf08aa7092c30dbf532fb49f5e08b42c/Tutorials/P5JS/p5.js/09/9.04_p5.js_setTimeout/sketch.js
+  //
+  setTimeout(goZeroGravity, 2000); //in 2000 milliseconds, run the goZeroGravity function
+
+  currentIndex = 0; //with the first element in all the colour arrays, before going onto the second after zero gravity has occurred
 }
 
 // Using p5 to render
 function draw() {
-  var currentIndex = getIndexOfVariant();
 
   background(backgroundColours[currentIndex]);
 
-  strokeWeight(8);
-  stroke(lineColours[currentIndex]);
-  noFill();
+  if (currentIndex == 1) {
+    strokeWeight(8);
+    stroke(lineColours[currentIndex]);
+    noFill();
 
-  //drawing bezier curves lines between rectangles first....
-  for (var i = 0; i < (rectangles.length - 1); i++) {
-    var startX = rectangles[i].matterRectangle.position.x;
-    var startY = rectangles[i].matterRectangle.position.y;
-    var endX = rectangles[i + 1].matterRectangle.position.x;
-    var endY = rectangles[i + 1].matterRectangle.position.y;
-    bezier(startX, startY, control1X, control1Y, control2X, control2Y, endX, endY);
+    //drawing bezier curves lines between rectangles first....
+    for (var i = 0; i < (rectangles.length - 1); i++) {
+      var startX = rectangles[i].matterRectangle.position.x;
+      var startY = rectangles[i].matterRectangle.position.y;
+      var endX = rectangles[i + 1].matterRectangle.position.x;
+      var endY = rectangles[i + 1].matterRectangle.position.y;
+      bezier(startX, startY, control1X, control1Y, control2X, control2Y, endX, endY);
+    }
   }
 
   noStroke();
@@ -268,11 +264,17 @@ function draw() {
 // check for keyboard events
 function keyPressed() {
   switch (key) {
-    // type g to hide / show the GUI
+    // type [g] to hide / show the GUI
     case 'g':
       visible = !visible;
       if (visible) gui.show();
       else gui.hide();
+      break;
+    case '0':
+      world.gravity.y = 0;
+      break;
+    case '1':
+      world.gravity.y = 1;
       break;
   }
 }
@@ -286,22 +288,19 @@ function DACRectangle(theRectangle, theWord, rectangleWidth, rectangleHeight, wo
   this.wordIndex = wordIndex;
 }
 
-function getIndexOfVariant() {
-  var theIndex = 0;
-  switch (colourChoice) {
-    case 'Variant 9':
-      theIndex = 0;
-      break;
-    case 'Variant 10':
-      theIndex = 1;
-      break;
-    case 'Variant 11':
-      theIndex = 2;
-      break;
-    case 'Variant 12':
-      theIndex = 3;
-      break;
-  }
+function goZeroGravity() {
+  world.gravity.y = 0;
+  currentIndex = 1;
 
-  return theIndex;
+  for (var i = 0; i < rectangles.length; i++) {
+    //set a random velocity of the new rectangle
+    var randomXVelocity = random(-5, 5);
+    var randomYVelocity = random(-5, 5);
+    //see http://brm.io/matter-js/docs/classes/Body.html
+    //from http://codepen.io/lilgreenland/pen/jrMvaB?editors=0010#0
+    Body.setVelocity(rectangles[i].matterRectangle, {
+      x: randomXVelocity,
+      y: randomYVelocity
+    });
+  }
 }
