@@ -166,7 +166,7 @@ function setup() {
 
   backgroundColours = [
     color(238, 221, 123),
-    color(̧̧235, 59, 86),
+    color(235, 59, 86),
     color(250, 249, 113),
     color(240, 231, 123)
   ];
@@ -286,19 +286,21 @@ function DACRectangle(theRectangle, theWord, rectangleWidth, rectangleHeight, wo
   this.wordIndex = wordIndex;
 }
 
+colourChoice = ['Variant 9', 'Top left', 'Top right', 'Bottom left'];
+
 function getIndexOfVariant() {
   var theIndex = 0;
   switch (colourChoice) {
     case 'Variant 9':
       theIndex = 0;
       break;
-    case 'Variant 10':
+    case 'Top left':
       theIndex = 1;
       break;
-    case 'Variant 11':
+    case 'Top right':
       theIndex = 2;
       break;
-    case 'Variant 12':
+    case 'Bottom left':
       theIndex = 3;
       break;
   }
