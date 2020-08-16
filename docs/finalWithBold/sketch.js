@@ -19,8 +19,6 @@ var engine; //matter physics engine
 var world; //matter physics world
 var bodies; //matter physics bodies
 
-var canvas; //pixel canvas
-
 var ground; //ground object for the physics simluation, so that the rectangles can't go off the canvas
 var leftWall; //left wall as above
 var rightWall; //right wall as above
@@ -60,9 +58,36 @@ var currentIndex; //0 to start with and then 1 after the fade has happened
 
 var indexAtWhichTheRestOfWordsAreInItalic; //index to words array at which the text becomes italic, bold previously
 
+var canvas;
+
+function windowResized() {
+  var canvasDiv = document.getElementById('site-title');
+  //lots of strangeness with offsetWidth vs. client width
+  //https://www.w3schools.com/jsref/prop_element_clientwidth.asp
+  //https://www.w3schools.com/css/css_boxmodel.asp
+  //https://stackoverflow.com/questions/52016682/get-divs-width-for-p5-js
+  //https://github.com/processing/p5.js/issues/193
+  var canvasWidth = canvasDiv.offsetWidth;
+  var canvasHeight = canvasDiv.offsetHeight;
+
+  //https://p5js.org/reference/#/p5/resizeCanvas
+  resizeCanvas(canvasWidth, canvasHeight);
+}
+
 function setup() {
-  canvas = createCanvas(800, 600); //800 pixel wide 600 pixel high canvas
-  textSize(42); //42 is the answer to everything
+  //https://stackoverflow.com/questions/37083287/how-to-set-canvas-width-height-using-parent-divs-attributes
+  //https://github.com/processing/p5.js/wiki/Beyond-the-canvas
+  //https://github.com/processing/p5.js/wiki/Positioning-your-canvas 
+
+  var canvasDiv = document.getElementById('site-title');
+  var canvasWidth = canvasDiv.offsetWidth;
+  var canvasHeight = canvasDiv.offsetHeight;
+  // var canvas = createCanvas(canvasWidth, desiredHeight);
+  canvas = createCanvas(canvasWidth, canvasHeight);
+  //console.log(canvas);
+  canvas.parent('site-title'); //https://github.com/processing/p5.js/wiki/Beyond-the-canvas
+
+  textSize(31); //42 is the answer to everything
   textAlign(CENTER, CENTER); //https://p5js.org/reference/#/p5/textAlign
 
   // create an engine
@@ -167,7 +192,7 @@ function setup() {
   visible = true;
 
   backgroundColours = [
-    color(233, 52, 78),
+    color(235, 59, 86),
     color(235, 59, 86)
   ];
 
